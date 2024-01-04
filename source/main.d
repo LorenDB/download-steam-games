@@ -53,7 +53,6 @@ int main(string[] args)
 {
     immutable configFileFolder = "~/.config/download-steam-games/".expandTilde;
     immutable configFilePath = configFileFolder ~ "config.json";
-    immutable gameListPath = configFileFolder ~ "games.json";
 
     Options options;
     if (!CLI!Options.parseArgs(options, args[1 .. $]))
