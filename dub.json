@@ -1,0 +1,13 @@
+{
+	"authors": [
+		"Loren Burkholder"
+	],
+	"copyright": "Copyright © Loren Burkholder",
+	"dependencies": {
+		"argparse": "~>1.3.0",
+		"asdf": "~>0.7.17"
+	},
+	"description": "Automate archiving of your Steam games using steamcmd",
+	"license": "GPL-3.0",
+	"name": "download-steam-games"
+}

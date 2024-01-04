@@ -1,0 +1,16 @@
+.dub
+docs.json
+__dummy.html
+docs/
+/download-steam-games
+download-steam-games.so
+download-steam-games.dylib
+download-steam-games.dll
+download-steam-games.a
+download-steam-games.lib
+download-steam-games-test-*
+*.exe
+*.pdb
+*.o
+*.obj
+*.lst
