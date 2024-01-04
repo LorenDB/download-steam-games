@@ -71,7 +71,6 @@ int main(string[] args)
     string jsonContent;
     while (!configFile.eof())
         jsonContent ~= configFile.readln().strip();
-    writeln(jsonContent);
 
     Config config;
     if (jsonContent.length > 0)
