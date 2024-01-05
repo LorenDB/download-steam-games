@@ -137,14 +137,14 @@ int main(string[] args)
         {
             foreach (beta; betas)
             {
-                write("\rDownloading " ~ game.name);
-                if (beta != "")
-                    write(" beta " ~ beta);
-                write(" for " ~ platform);
-
                 string gameString = game.name ~ "-" ~ platform;
                 string scriptPath = getcwd() ~  "/.download-" ~ gameString ~ ".txt";
                 string gamePath = config.archivePath ~ "/.downloads/" ~ gameString;
+
+                write("Downloading " ~ game.name);
+                if (beta != "")
+                    write(" beta " ~ beta);
+                writeln(" for " ~ platform ~ " to " ~ gamePath ~ "...");
 
                 auto steamcmdScript = File(scriptPath, "w");
                 steamcmdScript.writeln("@sSteamCmdForcePlatformType " ~ platform);
@@ -170,10 +170,10 @@ int main(string[] args)
                 }
                 scope(exit) rmdirRecurse(gamePath);
 
-                write("\rArchiving " ~ game.name);
+                write("Archiving " ~ game.name);
                 if (beta != "")
                     write(" beta " ~ beta);
-                write(" for " ~ platform);
+                writeln(" for " ~ platform ~ " to " ~ gameString ~".tar.gz...");
 
                 auto tarProcess = execute(["tar", "--use-compress-program=pigz", "-cf", gameString ~ ".tar.gz", gamePath]);
                 if (tarProcess.status != 0)
