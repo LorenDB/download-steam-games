@@ -136,6 +136,11 @@ int main(string[] args)
         {
             foreach (beta; betas)
             {
+                write("\rDownloading " ~ game.name);
+                if (beta != "")
+                    write(" beta " ~ beta);
+                write(" for " ~ platform);
+
                 string gameString = game.name ~ "-" ~ platform;
                 string scriptPath = getcwd() ~  "/.download-" ~ gameString ~ ".txt";
                 string gamePath = config.archivePath ~ "/.downloads/" ~ gameString;
@@ -163,6 +168,11 @@ int main(string[] args)
                     return steamcmdProcess.status;
                 }
                 scope(exit) rmdirRecurse(gamePath);
+
+                write("\rArchiving " ~ game.name);
+                if (beta != "")
+                    write(" beta " ~ beta);
+                write(" for " ~ platform);
 
                 auto tarProcess = execute(["tar", "--use-compress-program=pigz", "-cf", gameString ~ ".tar.gz", gamePath]);
                 if (tarProcess.status != 0)
