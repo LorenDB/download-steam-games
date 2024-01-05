@@ -115,6 +115,7 @@ int main(string[] args)
     configFile.close();
     configFile.open(configFilePath, "w");
     configFile.write(config.serializeToJsonPretty());
+    configFile.close();
 
     if (options.addGame)
         return 0;
