@@ -2,16 +2,27 @@
 
 This is a simple script to automate archiving your Steam games.
 
-## Dependencies
+## Installation
 
-You will need to install SteamCMD on a Linux machine (other platforms are not supported for now).
+You will need to install [SteamCMD](https://developer.valvesoftware.com/wiki/SteamCMD) on a Linux
+machine (other platforms are not supported for now). It's not important to put SteamCMD at any particular
+location, as download-steam-games will ask you for the location when you first run it.
+
+Once you've installed SteamCMD, `cd` to the SteamCMD folder and run `./steamcmd.sh`. This will start
+an interactive prompt. In this prompt, run the `login <username>` command with your Steam username. This
+will save your Steam credentials so download-steam-games does not have to ask you for them every time.
+
+Next you'll need to install a D toolchain if you don't have one on your system. Install a D compiler and
+the Dub package; if in doubt, choose DMD for your compiler.
+
 You also need to ensure `tar` and `pigz` are installed; most modern distros probably provide them
 out of the box.
 
-## Usage
+Now `git pull` this repo (if you haven't already) and `cd` into it. Run `dub run`; this will build the app
+and run it. As this is the first run, it will ask you for various configuration options. Since you haven't
+added any games yet, nothing will be downloaded.
 
-Start by running SteamCMD and issuing the `login <username>` command with your Steam username. This
-will save your Steam credentials so this script does not have to ask you for them every time.
+## Usage
 
 Open a terminal in the source directory and run `dub run -- --add-game`. This allows you to add a game
 to your list of games to download. You will need to provide your game's Steam ID; you can find this
