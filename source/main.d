@@ -88,25 +88,29 @@ bool readTruthyOrFalsy(string prompt, Nullable!bool defaultValue = Nullable!bool
     }
 }
 
-int downloadGame(Config.GameInfo game, string platform, string beta)
+int downloadGame(string name, string id, string platform, string beta)
 {
-    string gameString = game.name;
+    string gameString = name;
     if (beta != "")
         gameString ~= "-" ~ beta;
-    gameString ~= "-" ~ platform;
+    if (platform != "")
+        gameString ~= "-" ~ platform;
     string scriptPath = getcwd() ~  "/.download-" ~ gameString ~ ".txt";
     string gamePath = config.archivePath ~ "/.downloads/" ~ gameString;
 
-    write("Downloading " ~ game.name);
+    write("Downloading " ~ name);
     if (beta != "")
         write(" beta " ~ beta);
-    writeln(" for " ~ platform ~ " to " ~ gamePath ~ "...");
+    if (platform != "")
+        write(" for " ~ platform);
+    writeln(" to " ~ gamePath);
 
     auto steamcmdScript = File(scriptPath, "w");
-    steamcmdScript.writeln("@sSteamCmdForcePlatformType " ~ platform);
+    if (platform != "")
+        steamcmdScript.writeln("@sSteamCmdForcePlatformType " ~ platform);
     steamcmdScript.writeln("force_install_dir " ~ gamePath);
     steamcmdScript.writeln("login " ~ config.steamAcctName);
-    steamcmdScript.write("app_update " ~ game.id);
+    steamcmdScript.write("app_update " ~ id);
     if (beta != "")
         steamcmdScript.write(" -beta " ~ beta);
     steamcmdScript.writeln(" validate");
@@ -126,10 +130,12 @@ int downloadGame(Config.GameInfo game, string platform, string beta)
     }
     scope(exit) rmdirRecurse(gamePath);
 
-    write("Archiving " ~ game.name);
+    write("Archiving " ~ name);
     if (beta != "")
         write(" beta " ~ beta);
-    writeln(" for " ~ platform ~ " to " ~ gameString ~".tar.gz...");
+    if (platform != "")
+        write(" for " ~ platform);
+    writeln(" to " ~ gameString ~".tar.gz");
 
     auto tarProcess = execute(["tar", "--use-compress-program=pigz", "-cf", config.archivePath ~ "/" ~ gameString ~ ".tar.gz", gamePath]);
     if (tarProcess.status != 0)
@@ -225,7 +231,7 @@ int main(string[] args)
         {
             foreach (beta; betas)
             {
-                downloadGame(game, platform, beta);
+                downloadGame(game.name, game.id, platform, beta);
             }
         }
     }
