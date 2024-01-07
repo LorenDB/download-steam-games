@@ -210,7 +210,7 @@ int main(string[] args)
         newGame.macos = readTruthyOrFalsy("Does the game support macOS? ");
         newGame.linux = readTruthyOrFalsy("Does the game support Linux? ");
 
-        while (readTruthyOrFalsy("Do you want to add a beta version? "), false)
+        while (readTruthyOrFalsy("Do you want to add a beta version? ", Nullable!bool(false)))
         {
             write("Enter the beta name: ");
             string beta = readln().strip;
@@ -218,12 +218,14 @@ int main(string[] args)
                 newGame.betas ~= beta;
         }
 
-        while (readTruthyOrFalsy("Do you want to add a soundtrack? "), false)
+        while (readTruthyOrFalsy("Do you want to add a soundtrack? ", Nullable!bool(false)))
         {
+            Config.GameInfo.SoundtrackInfo newSoundtrack;
             write("What is the soundtrack's ID (check https://steamdb.info if you are unsure)? ");
-            string soundtrack = readln().strip;
-            if (soundtrack != "")
-                newGame.soundtracks ~= soundtracks;
+            newSoundtrack.id = readln().strip;
+            write("What name do you want to use for the soundtrack? ");
+            newSoundtrack.name = readln().strip;
+            newGame.soundtracks ~= newSoundtrack;
         }
 
         config.games ~= newGame;
