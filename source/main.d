@@ -62,6 +62,8 @@ bool readTruthyOrFalsy(string prompt, Nullable!bool defaultValue = Nullable!bool
             else
                 write("[y/N] ");
         }
+        else
+            write("[y/n] ");
         string answer = readln().strip.toLower;
         switch (answer)
         {
