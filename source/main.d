@@ -41,6 +41,13 @@ struct Config
         string id;
         string name;
         string[] betas;
+
+        struct SoundtrackInfo
+        {
+            string name;
+            string id;
+        }
+        SoundtrackInfo[] soundtracks;
         bool windows;
         bool macos;
         bool linux;
@@ -203,6 +210,22 @@ int main(string[] args)
         newGame.macos = readTruthyOrFalsy("Does the game support macOS? ");
         newGame.linux = readTruthyOrFalsy("Does the game support Linux? ");
 
+        while (readTruthyOrFalsy("Do you want to add a beta version? "), false)
+        {
+            write("Enter the beta name: ");
+            string beta = readln().strip;
+            if (beta != "")
+                newGame.betas ~= beta;
+        }
+
+        while (readTruthyOrFalsy("Do you want to add a soundtrack? "), false)
+        {
+            write("What is the soundtrack's ID (check https://steamdb.info if you are unsure)? ");
+            string soundtrack = readln().strip;
+            if (soundtrack != "")
+                newGame.soundtracks ~= soundtracks;
+        }
+
         config.games ~= newGame;
     }
 
@@ -231,8 +254,16 @@ int main(string[] args)
         {
             foreach (beta; betas)
             {
-                downloadGame(game.name, game.id, platform, beta);
+                int ret = downloadGame(game.name, game.id, platform, beta);
+                if (ret != 0)
+                    return ret;
             }
+        }
+        foreach (soundtrack; game.soundtracks)
+        {
+            int ret = downloadGame(game.name ~ "-soundtrack-" ~ soundtrack.name, soundtrack.id, null, null);
+            if (ret != 0)
+                return ret;
         }
     }
 
