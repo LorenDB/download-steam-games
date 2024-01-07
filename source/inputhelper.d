@@ -17,12 +17,12 @@ bool readTruthyOrFalsy(string prompt, Nullable!bool defaultValue = Nullable!bool
         if (!defaultValue.isNull)
         {
             if (defaultValue.get == true)
-                write("[Y/n] ");
+                write(" [Y/n] ");
             else
-                write("[y/N] ");
+                write(" [y/N] ");
         }
         else
-            write("[y/n] ");
+            write(" [y/n] ");
         string answer = readln().strip.toLower;
         switch (answer)
         {
@@ -52,7 +52,7 @@ string readString(string prompt, Nullable!string defaultValue = Nullable!string.
     {
         write(prompt);
         if (!defaultValue.isNull && defaultValue.get != "")
-            write("[" ~ defaultValue.get ~ "] ");
+            write(" [" ~ defaultValue.get ~ "] ");
 
         string answer = readln().strip;
         switch (answer)
