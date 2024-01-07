@@ -10,9 +10,9 @@ import std.json;
 import std.path;
 import std.conv: to;
 import std.process;
+import std.typecons;
 
 import argparse;
-
 import asdf;
 
 version(linux)
@@ -47,6 +47,42 @@ struct Config
     }
 
     GameInfo[] games;
+}
+
+// prompt should have a space at the end!
+bool readTruthyOrFalsy(string prompt, Nullable!bool defaultValue = Nullable!bool.init)
+{
+    while (true)
+    {
+        write(prompt);
+        if (!defaultValue.isNull)
+        {
+            if (defaultValue.get == true)
+                write("[Y/n] ");
+            else
+                write("[y/N] ");
+        }
+        string answer = readln().strip.toLower;
+        switch (answer)
+        {
+        case "y":
+        case "yes":
+        case "true":
+        case "1":
+            return true;
+        case "n":
+        case "no":
+        case "false":
+        case "0":
+            return false;
+        case "":
+            if (!defaultValue.isNull)
+                return defaultValue.get;
+            break;
+        default:
+            break;
+        }
+    }
 }
 
 int main(string[] args)
@@ -102,12 +138,9 @@ int main(string[] args)
         newGame.id = readln().strip;
         write("What name do you want to use for the game? ");
         newGame.name = readln().strip;
-        write("Does the game support Windows? ");
-        newGame.windows = readln().strip.to!bool;
-        write("Does the game support macOS? ");
-        newGame.macos = readln().strip.to!bool;
-        write("Does the game support Linux? ");
-        newGame.linux = readln().strip.to!bool;
+        newGame.windows = readTruthyOrFalsy("Does the game support Windows? ");
+        newGame.macos = readTruthyOrFalsy("Does the game support macOS? ");
+        newGame.linux = readTruthyOrFalsy("Does the game support Linux? ");
 
         config.games ~= newGame;
     }
