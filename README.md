@@ -5,7 +5,9 @@ This is a simple script to automate archiving your Steam games.
 ## Installation
 
 You will need to install [SteamCMD](https://developer.valvesoftware.com/wiki/SteamCMD) on a Linux
-machine (other platforms are not supported for now). It's not important to put SteamCMD at any particular
+machine (other platforms are not supported for now). Be sure that you use the manual installation
+option listed on the SteamCMD page; that's the only supported installation method for now, although
+system SteamCMD packages may get support eventually. It's not important to put SteamCMD at any particular
 location, as download-steam-games will ask you for the location when you first run it.
 
 Once you've installed SteamCMD, `cd` to the SteamCMD folder and run `./steamcmd.sh`. This will start
