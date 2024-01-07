@@ -18,7 +18,7 @@ int downloadGame(string name, string id, string platform, string beta, AppConfig
         gameString ~= "-" ~ beta;
     if (platform != "")
         gameString ~= "-" ~ platform;
-    string scriptPath = getcwd() ~  "/.download-" ~ gameString ~ ".txt";
+    string scriptPath = config.archivePath ~  "/.download-" ~ gameString ~ ".txt";
     string gamePath = config.archivePath ~ "/.downloads/" ~ gameString;
 
     write("Downloading " ~ name);
