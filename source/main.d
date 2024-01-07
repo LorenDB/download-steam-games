@@ -48,6 +48,7 @@ struct Config
 
     GameInfo[] games;
 }
+Config config;
 
 // prompt should have a space at the end!
 bool readTruthyOrFalsy(string prompt, Nullable!bool defaultValue = Nullable!bool.init)
@@ -87,6 +88,59 @@ bool readTruthyOrFalsy(string prompt, Nullable!bool defaultValue = Nullable!bool
     }
 }
 
+int downloadGame(Config.GameInfo game, string platform, string beta)
+{
+    string gameString = game.name;
+    if (beta != "")
+        gameString ~= "-" ~ beta;
+    gameString ~= "-" ~ platform;
+    string scriptPath = getcwd() ~  "/.download-" ~ gameString ~ ".txt";
+    string gamePath = config.archivePath ~ "/.downloads/" ~ gameString;
+
+    write("Downloading " ~ game.name);
+    if (beta != "")
+        write(" beta " ~ beta);
+    writeln(" for " ~ platform ~ " to " ~ gamePath ~ "...");
+
+    auto steamcmdScript = File(scriptPath, "w");
+    steamcmdScript.writeln("@sSteamCmdForcePlatformType " ~ platform);
+    steamcmdScript.writeln("force_install_dir " ~ gamePath);
+    steamcmdScript.writeln("login " ~ config.steamAcctName);
+    steamcmdScript.write("app_update " ~ game.id);
+    if (beta != "")
+        steamcmdScript.write(" -beta " ~ beta);
+    steamcmdScript.writeln(" validate");
+    steamcmdScript.writeln("quit");
+    steamcmdScript.close();
+    scope(exit) remove(scriptPath);
+
+    auto steamcmdProcess = execute([config.steamcmdPath ~ "/steamcmd.sh", "+runscript", scriptPath],
+                                null,
+                                std.process.Config.none,
+                                size_t.max,
+                                config.steamcmdPath);
+    if (steamcmdProcess.status != 0)
+    {
+        writeln("Error with SteamCMD");
+        return steamcmdProcess.status;
+    }
+    scope(exit) rmdirRecurse(gamePath);
+
+    write("Archiving " ~ game.name);
+    if (beta != "")
+        write(" beta " ~ beta);
+    writeln(" for " ~ platform ~ " to " ~ gameString ~".tar.gz...");
+
+    auto tarProcess = execute(["tar", "--use-compress-program=pigz", "-cf", config.archivePath ~ "/" ~ gameString ~ ".tar.gz", gamePath]);
+    if (tarProcess.status != 0)
+    {
+        writeln("Error with tar");
+        return tarProcess.status;
+    }
+
+    return 0;
+}
+
 int main(string[] args)
 {
     immutable configFileFolder = "~/.config/download-steam-games/".expandTilde;
@@ -109,7 +163,6 @@ int main(string[] args)
     while (!configFile.eof())
         jsonContent ~= configFile.readln().strip();
 
-    Config config;
     if (jsonContent.length > 0)
         config = jsonContent.deserialize!Config;
 
@@ -172,53 +225,7 @@ int main(string[] args)
         {
             foreach (beta; betas)
             {
-                string gameString = game.name;
-                if (beta != "")
-                    gameString ~= "-" ~ beta;
-                gameString ~= "-" ~ platform;
-                string scriptPath = getcwd() ~  "/.download-" ~ gameString ~ ".txt";
-                string gamePath = config.archivePath ~ "/.downloads/" ~ gameString;
-
-                write("Downloading " ~ game.name);
-                if (beta != "")
-                    write(" beta " ~ beta);
-                writeln(" for " ~ platform ~ " to " ~ gamePath ~ "...");
-
-                auto steamcmdScript = File(scriptPath, "w");
-                steamcmdScript.writeln("@sSteamCmdForcePlatformType " ~ platform);
-                steamcmdScript.writeln("force_install_dir " ~ gamePath);
-                steamcmdScript.writeln("login " ~ config.steamAcctName);
-                steamcmdScript.write("app_update " ~ game.id);
-                if (beta != "")
-                    steamcmdScript.write(" -beta " ~ beta);
-                steamcmdScript.writeln(" validate");
-                steamcmdScript.writeln("quit");
-                steamcmdScript.close();
-                scope(exit) remove(scriptPath);
-
-                auto steamcmdProcess = execute([config.steamcmdPath ~ "/steamcmd.sh", "+runscript", scriptPath],
-                                            null,
-                                            std.process.Config.none,
-                                            size_t.max,
-                                            config.steamcmdPath);
-                if (steamcmdProcess.status != 0)
-                {
-                    writeln("Error with SteamCMD");
-                    return steamcmdProcess.status;
-                }
-                scope(exit) rmdirRecurse(gamePath);
-
-                write("Archiving " ~ game.name);
-                if (beta != "")
-                    write(" beta " ~ beta);
-                writeln(" for " ~ platform ~ " to " ~ gameString ~".tar.gz...");
-
-                auto tarProcess = execute(["tar", "--use-compress-program=pigz", "-cf", config.archivePath ~ "/" ~ gameString ~ ".tar.gz", gamePath]);
-                if (tarProcess.status != 0)
-                {
-                    writeln("Error with tar");
-                    return tarProcess.status;
-                }
+                downloadGame(game, platform, beta);
             }
         }
     }
