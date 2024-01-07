@@ -11,6 +11,7 @@ import std.path;
 import std.conv: to;
 import std.process;
 import std.sumtype;
+import std.algorithm;
 import std.typecons;
 
 import argparse;
@@ -46,9 +47,16 @@ struct DownloadGamesAction
 {
 }
 
+@(Command("remove").ShortDescription("Remove a game by name or ID"))
+struct RemoveGameAction
+{
+    @(PositionalArgument(0))
+    string game;
+}
+
 struct Options
 {
-    @SubCommands SumType!(DownloadGamesAction, AddGameAction, ListGamesAction) command;
+    @SubCommands SumType!(DownloadGamesAction, AddGameAction, ListGamesAction, RemoveGameAction) command;
 }
 
 int main(string[] args)
@@ -187,5 +195,32 @@ int main(string[] args)
         }
 
         return 0;
+    }, (.RemoveGameAction removeAction) {
+        if (removeAction.game == "")
+        {
+            writeln("No game specified");
+            return 0;
+        }
+
+        for (int i = 0; i < config.games.length; ++i)
+        {
+            auto game = config.games[i];
+            if (game.name == removeAction.game || game.id == removeAction.game)
+            {
+                if (readTruthyOrFalsy("Are you sure you want to delete " ~ game.name ~ "?", false.nullable))
+                {
+                    config.games = config.games.remove(i);
+                    writeln("Removed " ~ game.name);
+                    configFile.open(configFilePath, "w");
+                    configFile.write(config.serializeToJsonPretty());
+                    configFile.close();
+                }
+                else
+                    writeln("Aborting.");
+                return 0;
+            }
+        }
+        writeln("Could not find a game with the name or ID " ~ removeAction.game ~ "!");
+        return -1;
     });
 }
