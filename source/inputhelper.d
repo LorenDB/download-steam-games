@@ -51,7 +51,7 @@ string readString(string prompt, Nullable!string defaultValue = Nullable!string.
     while (true)
     {
         write(prompt);
-        if (!defaultValue.isNull)
+        if (!defaultValue.isNull && defaultValue.get != "")
             write("[" ~ defaultValue.get ~ "] ");
 
         string answer = readln().strip;

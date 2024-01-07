@@ -143,14 +143,14 @@ int main(string[] args)
     if (jsonContent.length > 0)
         config = jsonContent.deserialize!Config;
 
-    while (config.steamcmdPath == "")// || !exists(config.steamcmdPath))
+    if (config.steamcmdPath == "")
         config.steamcmdPath = readString("Where is your SteamCMD executable located? ")
                                 .expandTilde.asAbsolutePath.to!string;
 
-    while (config.steamAcctName == "")
+    if (config.steamAcctName == "")
         config.steamAcctName = readString("What account have you logged into SteamCMD with? ");
 
-    while (config.archivePath == "")
+    if (config.archivePath == "")
         config.archivePath = readString("Where do you want to store your games? ", "~/steam-games".nullable)
                                 .expandTilde.asAbsolutePath.to!string;
     if (!config.archivePath.exists())
