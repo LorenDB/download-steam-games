@@ -208,7 +208,8 @@ int main(string[] args)
         config.steamAcctName = readString("What account have you logged into SteamCMD with? ");
 
     while (config.archivePath == "")
-        config.archivePath = readString("Where do you want to store your games? ").expandTilde.asAbsolutePath.to!string;
+        config.archivePath = readString("Where do you want to store your games? ", "~/steam-games".nullable)
+                                .expandTilde.asAbsolutePath.to!string;
     if (!config.archivePath.exists())
         config.archivePath.mkdirRecurse();
 
