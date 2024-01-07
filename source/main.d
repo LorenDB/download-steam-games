@@ -47,7 +47,7 @@ struct Config
             string name;
             string id;
         }
-        SoundtrackInfo[] soundtracks;
+        @serdeOptional SoundtrackInfo[] soundtracks;
         bool windows;
         bool macos;
         bool linux;
