@@ -95,6 +95,27 @@ bool readTruthyOrFalsy(string prompt, Nullable!bool defaultValue = Nullable!bool
     }
 }
 
+string readString(string prompt, Nullable!string defaultValue = Nullable!string.init)
+{
+    while (true)
+    {
+        write(prompt);
+        if (!defaultValue.isNull)
+            write("[" ~ defaultValue.get ~ "] ");
+
+        string answer = readln().strip;
+        switch (answer)
+        {
+        case "":
+            if (!defaultValue.isNull)
+                return defaultValue.get;
+            break;
+        default:
+            break;
+        }
+    }
+}
+
 int downloadGame(string name, string id, string platform, string beta)
 {
     string gameString = name;
@@ -180,51 +201,34 @@ int main(string[] args)
         config = jsonContent.deserialize!Config;
 
     while (config.steamcmdPath == "")// || !exists(config.steamcmdPath))
-    {
-        write("Where is your SteamCMD executable located? ");
-        config.steamcmdPath = readln().strip.expandTilde.asAbsolutePath.to!string;
-    }
+        config.steamcmdPath = readString("Where is your SteamCMD executable located? ")
+                                .expandTilde.asAbsolutePath.to!string;
 
     while (config.steamAcctName == "")
-    {
-        write("What account have you logged into SteamCMD with? ");
-        config.steamAcctName = readln().strip;
-    }
+        config.steamAcctName = readString("What account have you logged into SteamCMD with? ");
 
     while (config.archivePath == "")
-    {
-        write("Where do you want to store your games? ");
-        config.archivePath = readln().strip.expandTilde.asAbsolutePath.to!string;
-    }
+        config.archivePath = readString("Where do you want to store your games? ").expandTilde.asAbsolutePath.to!string;
     if (!config.archivePath.exists())
         config.archivePath.mkdirRecurse();
 
     if (options.addGame)
     {
         Config.GameInfo newGame;
-        write("What is the game's ID (check https://steamdb.info if you are unsure)? ");
-        newGame.id = readln().strip;
-        write("What name do you want to use for the game? ");
-        newGame.name = readln().strip;
+        newGame.id = readString("What is the game's ID (check https://steamdb.info if you are unsure)? ");
+        newGame.name = readString("What name do you want to use for the game? ");
         newGame.windows = readTruthyOrFalsy("Does the game support Windows? ");
         newGame.macos = readTruthyOrFalsy("Does the game support macOS? ");
         newGame.linux = readTruthyOrFalsy("Does the game support Linux? ");
 
-        while (readTruthyOrFalsy("Do you want to add a beta version? ", Nullable!bool(false)))
-        {
-            write("Enter the beta name: ");
-            string beta = readln().strip;
-            if (beta != "")
-                newGame.betas ~= beta;
-        }
+        while (readTruthyOrFalsy("Do you want to add a beta version? ", false.nullable))
+            newGame.betas ~= readString("Enter the beta name: ");
 
-        while (readTruthyOrFalsy("Do you want to add a soundtrack? ", Nullable!bool(false)))
+        while (readTruthyOrFalsy("Do you want to add a soundtrack? ", false.nullable))
         {
             Config.GameInfo.SoundtrackInfo newSoundtrack;
-            write("What is the soundtrack's ID (check https://steamdb.info if you are unsure)? ");
-            newSoundtrack.id = readln().strip;
-            write("What name do you want to use for the soundtrack? ");
-            newSoundtrack.name = readln().strip;
+            newSoundtrack.id = readString("What is the soundtrack's ID (check https://steamdb.info if you are unsure)? ");
+            newSoundtrack.name = readString("What name do you want to use for the soundtrack? ");
             newGame.soundtracks ~= newSoundtrack;
         }
 
