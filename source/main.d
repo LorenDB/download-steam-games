@@ -15,6 +15,8 @@ import std.typecons;
 import argparse;
 import asdf;
 
+import inputhelper;
+
 version(linux)
 {
     // Linux is currently the only supported platform
@@ -56,65 +58,6 @@ struct Config
     GameInfo[] games;
 }
 Config config;
-
-// prompt should have a space at the end!
-bool readTruthyOrFalsy(string prompt, Nullable!bool defaultValue = Nullable!bool.init)
-{
-    while (true)
-    {
-        write(prompt);
-        if (!defaultValue.isNull)
-        {
-            if (defaultValue.get == true)
-                write("[Y/n] ");
-            else
-                write("[y/N] ");
-        }
-        else
-            write("[y/n] ");
-        string answer = readln().strip.toLower;
-        switch (answer)
-        {
-        case "y":
-        case "yes":
-        case "true":
-        case "1":
-            return true;
-        case "n":
-        case "no":
-        case "false":
-        case "0":
-            return false;
-        case "":
-            if (!defaultValue.isNull)
-                return defaultValue.get;
-            break;
-        default:
-            break;
-        }
-    }
-}
-
-string readString(string prompt, Nullable!string defaultValue = Nullable!string.init)
-{
-    while (true)
-    {
-        write(prompt);
-        if (!defaultValue.isNull)
-            write("[" ~ defaultValue.get ~ "] ");
-
-        string answer = readln().strip;
-        switch (answer)
-        {
-        case "":
-            if (!defaultValue.isNull)
-                return defaultValue.get;
-            break;
-        default:
-            break;
-        }
-    }
-}
 
 int downloadGame(string name, string id, string platform, string beta)
 {
