@@ -26,11 +26,10 @@ added any games yet, nothing will be downloaded.
 
 ## Usage
 
-Open a terminal in the source directory and run `dub run -- --add-game`. This allows you to add a game
-to your list of games to download. You will need to provide your game's Steam ID; you can find this
-(and other information) at https://steamdb.info. You also will be asked for the game's name; you can respond
-with anything you want, since this is just used for the folder name for the game download and the final
-`.tar.gz` filename.
+Open a terminal in the source directory and run `dub run -- add` (or `dub build` and then `./download-steam-games add`).
+This allows you to add a game to your list of games to download. You will need to provide your game's Steam ID; you can
+find this (and other information) at https://steamdb.info. You also will be asked for the game's name; you can respond
+with anything you want, since this is just used for the folder name for the game download and the final `.tar.gz` filename.
 
 A few notes about the platform support questions:
 

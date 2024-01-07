@@ -10,6 +10,7 @@ import std.json;
 import std.path;
 import std.conv: to;
 import std.process;
+import std.sumtype;
 import std.typecons;
 
 import argparse;
@@ -28,10 +29,26 @@ else
     static assert(false, "Platforms other than Linux are currently not supported!");
 }
 
+@(Command("add").ShortDescription("Add a new game to the game list and then exit"))
+struct AddGameAction
+{
+}
+
+@(Command("list").ShortDescription("List all games and then exit"))
+struct ListGamesAction
+{
+    @(NamedArgument("detailed").Description("Print detailed information about every game"))
+    bool detailed;
+}
+
+@(Command("download").ShortDescription("Download all games in the list"))
+struct DownloadGamesAction
+{
+}
+
 struct Options
 {
-    @(NamedArgument("add-game").Description("Add a new game to the game list and then exit"))
-    bool addGame;
+    @SubCommands SumType!(DownloadGamesAction, AddGameAction, ListGamesAction) command;
 }
 
 int main(string[] args)
@@ -73,8 +90,44 @@ int main(string[] args)
     if (!config.archivePath.exists())
         config.archivePath.mkdirRecurse();
 
-    if (options.addGame)
-    {
+    configFile.close();
+    configFile.open(configFilePath, "w");
+    configFile.write(config.serializeToJsonPretty());
+    configFile.close();
+
+    return options.command.match!((.DownloadGamesAction) {
+        foreach (game; config.games)
+        {
+            string[] platforms;
+            if (game.windows)
+                platforms ~= "windows";
+            if (game.macos)
+                platforms ~= "macos";
+            if (game.linux)
+                platforms ~= "linux";
+
+            // an empty string indicates the non-beta download
+            string[] betas = game.betas ~ [""];
+
+            foreach (platform; platforms)
+            {
+                foreach (beta; betas)
+                {
+                    int ret = downloadGame(game.name, game.id, platform, beta, config);
+                    if (ret != 0)
+                        return ret;
+                }
+            }
+            foreach (soundtrack; game.soundtracks)
+            {
+                int ret = downloadGame(game.name ~ "-soundtrack-" ~ soundtrack.name, soundtrack.id, null, null, config);
+                if (ret != 0)
+                    return ret;
+            }
+        }
+
+        return 0;
+    }, (.AddGameAction) {
         GameInfo newGame;
         newGame.id = readString("What is the game's ID (check https://steamdb.info if you are unsure)? ");
         newGame.name = readString("What name do you want to use for the game? ");
@@ -94,45 +147,45 @@ int main(string[] args)
         }
 
         config.games ~= newGame;
-    }
-
-    configFile.close();
-    configFile.open(configFilePath, "w");
-    configFile.write(config.serializeToJsonPretty());
-    configFile.close();
-
-    if (options.addGame)
+        configFile.open(configFilePath, "w");
+        configFile.write(config.serializeToJsonPretty());
+        configFile.close();
         return 0;
-
-    foreach (game; config.games)
-    {
-        string[] platforms;
-        if (game.windows)
-            platforms ~= "windows";
-        if (game.macos)
-            platforms ~= "macos";
-        if (game.linux)
-            platforms ~= "linux";
-
-        // an empty string indicates the non-beta download
-        string[] betas = game.betas ~ [""];
-
-        foreach (platform; platforms)
+    }, (.ListGamesAction listGames) {
+        foreach (game; config.games)
         {
-            foreach (beta; betas)
+            if (listGames.detailed)
             {
-                int ret = downloadGame(game.name, game.id, platform, beta, config);
-                if (ret != 0)
-                    return ret;
-            }
-        }
-        foreach (soundtrack; game.soundtracks)
-        {
-            int ret = downloadGame(game.name ~ "-soundtrack-" ~ soundtrack.name, soundtrack.id, null, null, config);
-            if (ret != 0)
-                return ret;
-        }
-    }
+                writeln(game.name);
+                writeln("\tID: " ~ game.id);
 
-    return 0;
+                string[] platforms;
+                if (game.windows)
+                    platforms ~= "Windows";
+                if (game.macos)
+                    platforms ~= "macOS";
+                if (game.linux)
+                    platforms ~= "Linux";
+                if (platforms.length == 0)
+                    platforms ~= "None";
+                writeln("\tPlatforms: " ~ platforms.to!string);
+
+                if (game.betas.length > 0)
+                    writeln("\tBetas: " ~ game.betas.to!string);
+                if (game.soundtracks.length > 0)
+                {
+                    writeln("\tSoundtracks:");
+                    foreach (soundtrack; game.soundtracks)
+                    {
+                        writeln("\t\tName: " ~ soundtrack.name);
+                        writeln("\t\tID: " ~ soundtrack.id);
+                    }
+                }
+            }
+            else
+                writeln(game.id ~ "\t" ~ game.name);
+        }
+
+        return 0;
+    });
 }
