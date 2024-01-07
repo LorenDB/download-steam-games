@@ -170,7 +170,10 @@ int main(string[] args)
         {
             foreach (beta; betas)
             {
-                string gameString = game.name ~ "-" ~ platform;
+                string gameString = game.name;
+                if (beta != "")
+                    gameString ~= "-" ~ beta;
+                gameString ~= "-" ~ platform;
                 string scriptPath = getcwd() ~  "/.download-" ~ gameString ~ ".txt";
                 string gamePath = config.archivePath ~ "/.downloads/" ~ gameString;
 
@@ -184,7 +187,7 @@ int main(string[] args)
                 steamcmdScript.writeln("force_install_dir " ~ gamePath);
                 steamcmdScript.writeln("login " ~ config.steamAcctName);
                 steamcmdScript.write("app_update " ~ game.id);
-                if (beta != null)
+                if (beta != "")
                     steamcmdScript.write(" -beta " ~ beta);
                 steamcmdScript.writeln(" validate");
                 steamcmdScript.writeln("quit");
@@ -208,7 +211,7 @@ int main(string[] args)
                     write(" beta " ~ beta);
                 writeln(" for " ~ platform ~ " to " ~ gameString ~".tar.gz...");
 
-                auto tarProcess = execute(["tar", "--use-compress-program=pigz", "-cf", gameString ~ ".tar.gz", gamePath]);
+                auto tarProcess = execute(["tar", "--use-compress-program=pigz", "-cf", config.archivePath ~ "/" ~ gameString ~ ".tar.gz", gamePath]);
                 if (tarProcess.status != 0)
                 {
                     writeln("Error with tar");
