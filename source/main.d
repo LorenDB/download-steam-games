@@ -74,10 +74,15 @@ struct GameInfoAction
     string game;
 }
 
+@(Command("reconfigure").ShortDescription("Reconfigure your settings"))
+struct ReconfigureAction
+{
+}
+
 struct Options
 {
     @SubCommands SumType!(DownloadGamesAction, AddGameAction, ListGamesAction,
-            RemoveGameAction, EditGameAction, GameInfoAction) command;
+            RemoveGameAction, EditGameAction, GameInfoAction, ReconfigureAction) command;
 }
 
 template GetGameFromArgument(string gameNameOrId)
@@ -117,8 +122,10 @@ int main(string[] args)
     if (!CLI!Options.parseArgs(options, args[1 .. $]))
         return 1;
 
+    bool firstRun = false;
     if (!configFilePath.exists())
     {
+        firstRun = true;
         configFileFolder.mkdirRecurse();
         // create the file
         auto file = File(configFilePath, "w");
@@ -273,6 +280,24 @@ int main(string[] args)
     }, (.GameInfoAction infoAction) {
         mixin(GetGameFromArgument!"infoAction.game");
         printGameInfo(game, true);
+        return 0;
+    }, (.ReconfigureAction) {
+        if (firstRun)
+            return 0;
+
+        config.steamcmdPath = readString("Where is your SteamCMD executable located?",
+            config.steamcmdPath.nullable).expandTilde.asAbsolutePath.to!string;
+        config.steamAcctName = readString("What account have you logged into SteamCMD with?",
+            config.steamAcctName.nullable);
+        config.archivePath = readString("Where do you want to store your games?",
+            config.archivePath.nullable).expandTilde.asAbsolutePath.to!string;
+        if (!config.archivePath.exists())
+            config.archivePath.mkdirRecurse();
+
+        configFile.open(configFilePath, "w");
+        configFile.write(config.serializeToJsonPretty());
+        configFile.close();
+
         return 0;
     });
 }
