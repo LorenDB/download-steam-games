@@ -70,3 +70,5 @@ To view a list of all the games you have installed, you can run `download-steam-
 and ID of all your games; if you want to view more information, run `download-steam-games list --detailed` or
 `download-steam-games info <game name or ID>`; this will print all information stored about your game. If you want to edit a
 game, run `download-steam-games edit <game name or ID>`; to remove a game from the list, run `download-steam-games remove <game name or ID>`.
+
+For any other commands that may be missed here, run `download-steam-games --help` or `download-steam-games <command> --help`.
