@@ -54,9 +54,16 @@ struct RemoveGameAction
     string game;
 }
 
+@(Command("edit").ShortDescription("Edit a game by name or ID"))
+struct EditGameAction
+{
+    @(PositionalArgument(0))
+    string game;
+}
+
 struct Options
 {
-    @SubCommands SumType!(DownloadGamesAction, AddGameAction, ListGamesAction, RemoveGameAction) command;
+    @SubCommands SumType!(DownloadGamesAction, AddGameAction, ListGamesAction, RemoveGameAction, EditGameAction) command;
 }
 
 int main(string[] args)
@@ -221,6 +228,54 @@ int main(string[] args)
             }
         }
         writeln("Could not find a game with the name or ID " ~ removeAction.game ~ "!");
+        return -1;
+    }, (.EditGameAction editAction) {
+        if (editAction.game == "")
+        {
+            writeln("No game specified");
+            return 0;
+        }
+
+        for (int i = 0; i < config.games.length; ++i)
+        {
+            auto game = config.games[i];
+            if (game.name == editAction.game || game.id == editAction.game)
+            {
+                game.id = readString("What is the game's ID (check https://steamdb.info if you are unsure)?", game.id.nullable);
+                game.name = readString("What name do you want to use for the game?", game.name.nullable);
+                game.windows = readTruthyOrFalsy("Does the game support Windows?", game.windows.nullable);
+                game.macos = readTruthyOrFalsy("Does the game support macOS?", game.macos.nullable);
+                game.linux = readTruthyOrFalsy("Does the game support Linux?", game.linux.nullable);
+
+                if (game.betas.length > 0)
+                {
+                    writeln("Betas: " ~ game.betas.to!string);
+                    // TODO: allow removing or editing betas
+                }
+                while (readTruthyOrFalsy("Do you want to add a beta version?", false.nullable))
+                    game.betas ~= readString("Enter the beta name:");
+
+                if (game.soundtracks.length > 0)
+                {
+                    writeln("Soundtracks: " ~ game.soundtracks.to!string);
+                    // TODO: allow removing or editing soundtracks
+                }
+                while (readTruthyOrFalsy("Do you want to add a soundtrack?", false.nullable))
+                {
+                    SoundtrackInfo newSoundtrack;
+                    newSoundtrack.id = readString("What is the soundtrack's ID (check https://steamdb.info if you are unsure)?");
+                    newSoundtrack.name = readString("What name do you want to use for the soundtrack?");
+                    game.soundtracks ~= newSoundtrack;
+                }
+
+                config.games[i] = game;
+                configFile.open(configFilePath, "w");
+                configFile.write(config.serializeToJsonPretty());
+                configFile.close();
+                return 0;
+            }
+        }
+        writeln("Could not find a game with the name or ID " ~ editAction.game ~ "!");
         return -1;
     });
 }
