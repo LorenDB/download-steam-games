@@ -43,9 +43,11 @@ struct ListGamesAction
     bool detailed;
 }
 
-@(Command("download").ShortDescription("Download all games in the list"))
+@(Command("download").ShortDescription("Download games from the list"))
 struct DownloadGamesAction
 {
+    @(PositionalArgument(0).Optional().Description("If specified, only the game identified by the name or ID specified here will be downloaded."))
+    string game;
 }
 
 @(Command("remove").ShortDescription("Remove a game by name or ID"))
@@ -147,14 +149,22 @@ int main(string[] args)
     configFile.write(config.serializeToJsonPretty());
     configFile.close();
 
-    return options.command.match!((.DownloadGamesAction) {
-        foreach (game; config.games)
+    return options.command.match!((.DownloadGamesAction downloadAction) {
+        if (downloadAction.game != "")
         {
-            auto ret = downloadGame(game, config);
-            if (ret != 0)
-                return ret;
+            mixin(GetGameFromArgument!"downloadAction.game");
+            return downloadGame(game, config);
         }
-        return 0;
+        else
+        {
+            foreach (game; config.games)
+            {
+                auto ret = downloadGame(game, config);
+                if (ret != 0)
+                    return ret;
+            }
+            return 0;
+        }
     }, (.AddGameAction) {
         GameInfo newGame;
         newGame.id = readString(
