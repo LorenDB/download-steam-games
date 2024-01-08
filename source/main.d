@@ -20,6 +20,7 @@ import asdf;
 import inputhelper;
 import downloader;
 import config;
+import info;
 
 version(linux)
 {
@@ -181,38 +182,7 @@ int main(string[] args)
         return 0;
     }, (.ListGamesAction listGames) {
         foreach (game; config.games)
-        {
-            if (listGames.detailed)
-            {
-                writeln(game.name);
-                writeln("\tID: " ~ game.id);
-
-                string[] platforms;
-                if (game.windows)
-                    platforms ~= "Windows";
-                if (game.macos)
-                    platforms ~= "macOS";
-                if (game.linux)
-                    platforms ~= "Linux";
-                if (platforms.length == 0)
-                    platforms ~= "None";
-                writeln("\tPlatforms: " ~ platforms.to!string);
-
-                if (game.betas.length > 0)
-                    writeln("\tBetas: " ~ game.betas.to!string);
-                if (game.soundtracks.length > 0)
-                {
-                    writeln("\tSoundtracks:");
-                    foreach (soundtrack; game.soundtracks)
-                    {
-                        writeln("\t\tName: " ~ soundtrack.name);
-                        writeln("\t\tID: " ~ soundtrack.id);
-                    }
-                }
-            }
-            else
-                writeln(game.id ~ "\t" ~ game.name);
-        }
+            printGameInfo(game, listGames.detailed);
 
         return 0;
     }, (.RemoveGameAction removeAction) {
@@ -302,31 +272,7 @@ int main(string[] args)
             auto game = config.games[i];
             if (game.name == infoAction.game || game.id == infoAction.game)
             {
-                writeln(game.name);
-                writeln("\tID: " ~ game.id);
-
-                string[] platforms;
-                if (game.windows)
-                    platforms ~= "Windows";
-                if (game.macos)
-                    platforms ~= "macOS";
-                if (game.linux)
-                    platforms ~= "Linux";
-                if (platforms.length == 0)
-                    platforms ~= "None";
-                writeln("\tPlatforms: " ~ platforms.to!string);
-
-                if (game.betas.length > 0)
-                    writeln("\tBetas: " ~ game.betas.to!string);
-                if (game.soundtracks.length > 0)
-                {
-                    writeln("\tSoundtracks:");
-                    foreach (soundtrack; game.soundtracks)
-                    {
-                        writeln("\t\tName: " ~ soundtrack.name);
-                        writeln("\t\tID: " ~ soundtrack.id);
-                    }
-                }
+                printGameInfo(game, true);
                 return 0;
             }
         }
