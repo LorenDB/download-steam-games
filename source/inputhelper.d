@@ -8,7 +8,6 @@ import std.stdio;
 import std.typecons;
 import std.string;
 
-// prompt should have a space at the end!
 bool readTruthyOrFalsy(string prompt, Nullable!bool defaultValue = Nullable!bool.init)
 {
     while (true)
@@ -53,6 +52,8 @@ string readString(string prompt, Nullable!string defaultValue = Nullable!string.
         write(prompt);
         if (!defaultValue.isNull && defaultValue.get != "")
             write(" [" ~ defaultValue.get ~ "] ");
+        else
+            write(" ");
 
         string answer = readln().strip;
         switch (answer)

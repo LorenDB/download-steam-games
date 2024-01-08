@@ -86,14 +86,14 @@ int main(string[] args)
         config = jsonContent.deserialize!AppConfig;
 
     if (config.steamcmdPath == "")
-        config.steamcmdPath = readString("Where is your SteamCMD executable located? ")
+        config.steamcmdPath = readString("Where is your SteamCMD executable located?")
                                 .expandTilde.asAbsolutePath.to!string;
 
     if (config.steamAcctName == "")
-        config.steamAcctName = readString("What account have you logged into SteamCMD with? ");
+        config.steamAcctName = readString("What account have you logged into SteamCMD with?");
 
     if (config.archivePath == "")
-        config.archivePath = readString("Where do you want to store your games? ", "~/steam-games".nullable)
+        config.archivePath = readString("Where do you want to store your games?", "~/steam-games".nullable)
                                 .expandTilde.asAbsolutePath.to!string;
     if (!config.archivePath.exists())
         config.archivePath.mkdirRecurse();
@@ -137,20 +137,20 @@ int main(string[] args)
         return 0;
     }, (.AddGameAction) {
         GameInfo newGame;
-        newGame.id = readString("What is the game's ID (check https://steamdb.info if you are unsure)? ");
-        newGame.name = readString("What name do you want to use for the game? ");
-        newGame.windows = readTruthyOrFalsy("Does the game support Windows? ");
-        newGame.macos = readTruthyOrFalsy("Does the game support macOS? ");
-        newGame.linux = readTruthyOrFalsy("Does the game support Linux? ");
+        newGame.id = readString("What is the game's ID (check https://steamdb.info if you are unsure)?");
+        newGame.name = readString("What name do you want to use for the game?");
+        newGame.windows = readTruthyOrFalsy("Does the game support Windows?");
+        newGame.macos = readTruthyOrFalsy("Does the game support macOS?");
+        newGame.linux = readTruthyOrFalsy("Does the game support Linux?");
 
-        while (readTruthyOrFalsy("Do you want to add a beta version? ", false.nullable))
-            newGame.betas ~= readString("Enter the beta name: ");
+        while (readTruthyOrFalsy("Do you want to add a beta version?", false.nullable))
+            newGame.betas ~= readString("Enter the beta name:");
 
-        while (readTruthyOrFalsy("Do you want to add a soundtrack? ", false.nullable))
+        while (readTruthyOrFalsy("Do you want to add a soundtrack?", false.nullable))
         {
             SoundtrackInfo newSoundtrack;
-            newSoundtrack.id = readString("What is the soundtrack's ID (check https://steamdb.info if you are unsure)? ");
-            newSoundtrack.name = readString("What name do you want to use for the soundtrack? ");
+            newSoundtrack.id = readString("What is the soundtrack's ID (check https://steamdb.info if you are unsure)?");
+            newSoundtrack.name = readString("What name do you want to use for the soundtrack?");
             newGame.soundtracks ~= newSoundtrack;
         }
 
