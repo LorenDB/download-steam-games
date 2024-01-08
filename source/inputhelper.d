@@ -62,7 +62,7 @@ string readString(string prompt, Nullable!string defaultValue = Nullable!string.
                 return defaultValue.get;
             break;
         default:
-            break;
+            return answer;
         }
     }
 }
