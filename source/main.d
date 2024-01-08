@@ -8,7 +8,7 @@ import std.csv;
 import std.string;
 import std.json;
 import std.path;
-import std.conv: to;
+import std.conv : to;
 import std.process;
 import std.sumtype;
 import std.algorithm;
@@ -22,7 +22,7 @@ import downloader;
 import config;
 import info;
 
-version(linux)
+version (linux)
 {
     // Linux is currently the only supported platform
 }
@@ -71,13 +71,8 @@ struct GameInfoAction
 
 struct Options
 {
-    @SubCommands SumType!(DownloadGamesAction,
-                          AddGameAction,
-                          ListGamesAction,
-                          RemoveGameAction,
-                          EditGameAction,
-                          GameInfoAction)
-        command;
+    @SubCommands SumType!(DownloadGamesAction, AddGameAction, ListGamesAction,
+            RemoveGameAction, EditGameAction, GameInfoAction) command;
 }
 
 int main(string[] args)
@@ -108,14 +103,14 @@ int main(string[] args)
 
     if (config.steamcmdPath == "")
         config.steamcmdPath = readString("Where is your SteamCMD executable located?")
-                                .expandTilde.asAbsolutePath.to!string;
+            .expandTilde.asAbsolutePath.to!string;
 
     if (config.steamAcctName == "")
         config.steamAcctName = readString("What account have you logged into SteamCMD with?");
 
     if (config.archivePath == "")
-        config.archivePath = readString("Where do you want to store your games?", "~/steam-games".nullable)
-                                .expandTilde.asAbsolutePath.to!string;
+        config.archivePath = readString("Where do you want to store your games?",
+                "~/steam-games".nullable).expandTilde.asAbsolutePath.to!string;
     if (!config.archivePath.exists())
         config.archivePath.mkdirRecurse();
 
@@ -149,7 +144,8 @@ int main(string[] args)
             }
             foreach (soundtrack; game.soundtracks)
             {
-                int ret = downloadGame(game.name ~ "-soundtrack-" ~ soundtrack.name, soundtrack.id, null, null, config);
+                int ret = downloadGame(game.name ~ "-soundtrack-" ~ soundtrack.name,
+                    soundtrack.id, null, null, config);
                 if (ret != 0)
                     return ret;
             }
@@ -158,7 +154,8 @@ int main(string[] args)
         return 0;
     }, (.AddGameAction) {
         GameInfo newGame;
-        newGame.id = readString("What is the game's ID (check https://steamdb.info if you are unsure)?");
+        newGame.id = readString(
+            "What is the game's ID (check https://steamdb.info if you are unsure)?");
         newGame.name = readString("What name do you want to use for the game?");
         newGame.windows = readTruthyOrFalsy("Does the game support Windows?");
         newGame.macos = readTruthyOrFalsy("Does the game support macOS?");
@@ -170,7 +167,8 @@ int main(string[] args)
         while (readTruthyOrFalsy("Do you want to add a soundtrack?", false.nullable))
         {
             SoundtrackInfo newSoundtrack;
-            newSoundtrack.id = readString("What is the soundtrack's ID (check https://steamdb.info if you are unsure)?");
+            newSoundtrack.id = readString(
+                "What is the soundtrack's ID (check https://steamdb.info if you are unsure)?");
             newSoundtrack.name = readString("What name do you want to use for the soundtrack?");
             newGame.soundtracks ~= newSoundtrack;
         }
@@ -197,7 +195,8 @@ int main(string[] args)
             auto game = config.games[i];
             if (game.name == removeAction.game || game.id == removeAction.game)
             {
-                if (readTruthyOrFalsy("Are you sure you want to delete " ~ game.name ~ "?", false.nullable))
+                if (readTruthyOrFalsy("Are you sure you want to delete " ~ game.name ~ "?",
+                    false.nullable))
                 {
                     config.games = config.games.remove(i);
                     writeln("Removed " ~ game.name);
@@ -224,9 +223,12 @@ int main(string[] args)
             auto game = config.games[i];
             if (game.name == editAction.game || game.id == editAction.game)
             {
-                game.id = readString("What is the game's ID (check https://steamdb.info if you are unsure)?", game.id.nullable);
-                game.name = readString("What name do you want to use for the game?", game.name.nullable);
-                game.windows = readTruthyOrFalsy("Does the game support Windows?", game.windows.nullable);
+                game.id = readString("What is the game's ID (check https://steamdb.info if you are unsure)?",
+                    game.id.nullable);
+                game.name = readString("What name do you want to use for the game?",
+                    game.name.nullable);
+                game.windows = readTruthyOrFalsy("Does the game support Windows?",
+                    game.windows.nullable);
                 game.macos = readTruthyOrFalsy("Does the game support macOS?", game.macos.nullable);
                 game.linux = readTruthyOrFalsy("Does the game support Linux?", game.linux.nullable);
 
@@ -246,8 +248,10 @@ int main(string[] args)
                 while (readTruthyOrFalsy("Do you want to add a soundtrack?", false.nullable))
                 {
                     SoundtrackInfo newSoundtrack;
-                    newSoundtrack.id = readString("What is the soundtrack's ID (check https://steamdb.info if you are unsure)?");
-                    newSoundtrack.name = readString("What name do you want to use for the soundtrack?");
+                    newSoundtrack.id = readString(
+                        "What is the soundtrack's ID (check https://steamdb.info if you are unsure)?");
+                    newSoundtrack.name = readString(
+                        "What name do you want to use for the soundtrack?");
                     game.soundtracks ~= newSoundtrack;
                 }
 

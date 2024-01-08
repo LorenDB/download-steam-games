@@ -18,7 +18,7 @@ int downloadGame(string name, string id, string platform, string beta, AppConfig
         gameString ~= "-" ~ beta;
     if (platform != "")
         gameString ~= "-" ~ platform;
-    string scriptPath = config.archivePath ~  "/.download-" ~ gameString ~ ".txt";
+    string scriptPath = config.archivePath ~ "/.download-" ~ gameString ~ ".txt";
     string gamePath = config.archivePath ~ "/.downloads/" ~ gameString;
 
     write("Downloading " ~ name);
@@ -39,28 +39,31 @@ int downloadGame(string name, string id, string platform, string beta, AppConfig
     steamcmdScript.writeln(" validate");
     steamcmdScript.writeln("quit");
     steamcmdScript.close();
-    scope(exit) remove(scriptPath);
+    scope (exit)
+        remove(scriptPath);
 
-    auto steamcmdProcess = execute([config.steamcmdPath ~ "/steamcmd.sh", "+runscript", scriptPath],
-                                null,
-                                std.process.Config.none,
-                                size_t.max,
-                                config.steamcmdPath);
+    auto steamcmdProcess = execute([
+        config.steamcmdPath ~ "/steamcmd.sh", "+runscript", scriptPath
+    ], null, std.process.Config.none, size_t.max, config.steamcmdPath);
     if (steamcmdProcess.status != 0)
     {
         writeln("Error with SteamCMD");
         return steamcmdProcess.status;
     }
-    scope(exit) rmdirRecurse(gamePath);
+    scope (exit)
+        rmdirRecurse(gamePath);
 
     write("Archiving " ~ name);
     if (beta != "")
         write(" beta " ~ beta);
     if (platform != "")
         write(" for " ~ platform);
-    writeln(" to " ~ gameString ~".tar.gz");
+    writeln(" to " ~ gameString ~ ".tar.gz");
 
-    auto tarProcess = execute(["tar", "--use-compress-program=pigz", "-cf", config.archivePath ~ "/" ~ gameString ~ ".tar.gz", gamePath]);
+    auto tarProcess = execute([
+        "tar", "--use-compress-program=pigz", "-cf",
+        config.archivePath ~ "/" ~ gameString ~ ".tar.gz", gamePath
+    ]);
     if (tarProcess.status != 0)
     {
         writeln("Error with tar");

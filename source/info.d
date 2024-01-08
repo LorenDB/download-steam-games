@@ -5,7 +5,7 @@
 module info;
 
 import std.stdio;
-import std.conv: to;
+import std.conv : to;
 
 import config;
 
