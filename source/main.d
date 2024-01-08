@@ -61,9 +61,22 @@ struct EditGameAction
     string game;
 }
 
+@(Command("info").ShortDescription("Get information about a game"))
+struct GameInfoAction
+{
+    @PositionalArgument(0)
+    string game;
+}
+
 struct Options
 {
-    @SubCommands SumType!(DownloadGamesAction, AddGameAction, ListGamesAction, RemoveGameAction, EditGameAction) command;
+    @SubCommands SumType!(DownloadGamesAction,
+                          AddGameAction,
+                          ListGamesAction,
+                          RemoveGameAction,
+                          EditGameAction,
+                          GameInfoAction)
+        command;
 }
 
 int main(string[] args)
@@ -276,6 +289,48 @@ int main(string[] args)
             }
         }
         writeln("Could not find a game with the name or ID " ~ editAction.game ~ "!");
+        return -1;
+    }, (.GameInfoAction infoAction) {
+        if (infoAction.game == "")
+        {
+            writeln("No game specified");
+            return 0;
+        }
+
+        for (int i = 0; i < config.games.length; ++i)
+        {
+            auto game = config.games[i];
+            if (game.name == infoAction.game || game.id == infoAction.game)
+            {
+                writeln(game.name);
+                writeln("\tID: " ~ game.id);
+
+                string[] platforms;
+                if (game.windows)
+                    platforms ~= "Windows";
+                if (game.macos)
+                    platforms ~= "macOS";
+                if (game.linux)
+                    platforms ~= "Linux";
+                if (platforms.length == 0)
+                    platforms ~= "None";
+                writeln("\tPlatforms: " ~ platforms.to!string);
+
+                if (game.betas.length > 0)
+                    writeln("\tBetas: " ~ game.betas.to!string);
+                if (game.soundtracks.length > 0)
+                {
+                    writeln("\tSoundtracks:");
+                    foreach (soundtrack; game.soundtracks)
+                    {
+                        writeln("\t\tName: " ~ soundtrack.name);
+                        writeln("\t\tID: " ~ soundtrack.id);
+                    }
+                }
+                return 0;
+            }
+        }
+        writeln("Could not find a game with the name or ID " ~ infoAction.game ~ "!");
         return -1;
     });
 }
