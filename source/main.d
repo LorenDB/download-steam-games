@@ -21,6 +21,7 @@ import inputhelper;
 import downloader;
 import config;
 import info;
+import utils;
 
 version (linux)
 {
@@ -222,7 +223,18 @@ int main(string[] args)
         if (game.betas.length > 0)
         {
             writeln("Betas: " ~ game.betas.to!string);
-            // TODO: allow removing or editing betas
+            while (game.betas.length > 0
+                && readTruthyOrFalsy("Do you want to remove a beta version?", false.nullable))
+            {
+                auto betaToRemove = readString("Enter the beta version to remove:");
+                const betaIndex = game.betas.indexOf(betaToRemove);
+                if (betaIndex == -1)
+                {
+                    writeln("Beta " ~ betaToRemove ~ " not found");
+                    continue;
+                }
+                game.betas = game.betas.remove(betaIndex);
+            }
         }
         while (readTruthyOrFalsy("Do you want to add a beta version?", false.nullable))
             game.betas ~= readString("Enter the beta name:");
@@ -230,7 +242,19 @@ int main(string[] args)
         if (game.soundtracks.length > 0)
         {
             writeln("Soundtracks: " ~ game.soundtracks.to!string);
-            // TODO: allow removing or editing soundtracks
+            while (game.soundtracks.length > 0
+                && readTruthyOrFalsy("Do you want to remove a soundtrack?", false.nullable))
+            {
+                auto soundtrackToRemove = readString("Enter the soundtrack to remove:");
+                const soundtrackIndex = game.soundtracks.indexOf!(a => a.name == soundtrackToRemove
+                    || a.id == soundtrackToRemove);
+                if (soundtrackIndex == -1)
+                {
+                    writeln("Soundtrack " ~ soundtrackToRemove ~ " not found");
+                    continue;
+                }
+                game.soundtracks = game.soundtracks.remove(soundtrackIndex);
+            }
         }
         while (readTruthyOrFalsy("Do you want to add a soundtrack?", false.nullable))
         {
