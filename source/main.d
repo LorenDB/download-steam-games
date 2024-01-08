@@ -46,7 +46,9 @@ struct ListGamesAction
 @(Command("download").ShortDescription("Download games from the list"))
 struct DownloadGamesAction
 {
-    @(PositionalArgument(0).Optional().Description("If specified, only the game identified by the name or ID specified here will be downloaded."))
+    @(PositionalArgument(0).Optional()
+            .Description(
+                "If specified, only the game identified by the name or ID specified here will be downloaded."))
     string game;
 }
 
@@ -197,8 +199,7 @@ int main(string[] args)
         return 0;
     }, (.RemoveGameAction removeAction) {
         mixin(GetGameFromArgument!"removeAction.game");
-        if (readTruthyOrFalsy("Are you sure you want to delete " ~ game.name ~ "?",
-            false.nullable))
+        if (readTruthyOrFalsy("Are you sure you want to delete " ~ game.name ~ "?", false.nullable))
         {
             config.games = config.games.remove(indexOfGame);
             writeln("Removed " ~ game.name);
@@ -213,10 +214,8 @@ int main(string[] args)
         mixin(GetGameFromArgument!"editAction.game");
         game.id = readString("What is the game's ID (check https://steamdb.info if you are unsure)?",
             game.id.nullable);
-        game.name = readString("What name do you want to use for the game?",
-            game.name.nullable);
-        game.windows = readTruthyOrFalsy("Does the game support Windows?",
-            game.windows.nullable);
+        game.name = readString("What name do you want to use for the game?", game.name.nullable);
+        game.windows = readTruthyOrFalsy("Does the game support Windows?", game.windows.nullable);
         game.macos = readTruthyOrFalsy("Does the game support macOS?", game.macos.nullable);
         game.linux = readTruthyOrFalsy("Does the game support Linux?", game.linux.nullable);
 
@@ -238,8 +237,7 @@ int main(string[] args)
             SoundtrackInfo newSoundtrack;
             newSoundtrack.id = readString(
                 "What is the soundtrack's ID (check https://steamdb.info if you are unsure)?");
-            newSoundtrack.name = readString(
-                "What name do you want to use for the soundtrack?");
+            newSoundtrack.name = readString("What name do you want to use for the soundtrack?");
             game.soundtracks ~= newSoundtrack;
         }
 

@@ -36,7 +36,7 @@ int downloadGame(GameInfo game, AppConfig config)
     foreach (soundtrack; game.soundtracks)
     {
         int ret = downloadGameImpl(game.name ~ "-soundtrack-" ~ soundtrack.name,
-            soundtrack.id, null, null, config);
+                soundtrack.id, null, null, config);
         if (ret != 0)
             return ret;
     }
