@@ -11,7 +11,40 @@ import std.process;
 
 import config;
 
-int downloadGame(string name, string id, string platform, string beta, AppConfig config)
+int downloadGame(GameInfo game, AppConfig config)
+{
+    string[] platforms;
+    if (game.windows)
+        platforms ~= "windows";
+    if (game.macos)
+        platforms ~= "macos";
+    if (game.linux)
+        platforms ~= "linux";
+
+    // an empty string indicates the non-beta download
+    string[] betas = game.betas ~ [""];
+
+    foreach (platform; platforms)
+    {
+        foreach (beta; betas)
+        {
+            int ret = downloadGameImpl(game.name, game.id, platform, beta, config);
+            if (ret != 0)
+                return ret;
+        }
+    }
+    foreach (soundtrack; game.soundtracks)
+    {
+        int ret = downloadGameImpl(game.name ~ "-soundtrack-" ~ soundtrack.name,
+            soundtrack.id, null, null, config);
+        if (ret != 0)
+            return ret;
+    }
+
+    return 0;
+}
+
+int downloadGameImpl(string name, string id, string platform, string beta, AppConfig config)
 {
     string gameString = name;
     if (beta != "")

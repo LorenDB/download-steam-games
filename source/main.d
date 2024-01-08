@@ -75,6 +75,34 @@ struct Options
             RemoveGameAction, EditGameAction, GameInfoAction) command;
 }
 
+template GetGameFromArgument(string gameNameOrId)
+{
+    enum GetGameFromArgument = `
+        if (` ~ gameNameOrId ~ ` == "")
+        {
+            writeln("No game specified");
+            return 0;
+        }
+
+        int indexOfGame = -1;
+        for (int i = 0; i < config.games.length; ++i)
+        {
+            auto game = config.games[i];
+            if (game.name == ` ~ gameNameOrId ~ ` || game.id == ` ~ gameNameOrId ~ `)
+            {
+                indexOfGame = i;
+                break;
+            }
+        }
+
+        if (indexOfGame == -1)
+        {
+            writeln("Could not find a game with the name or ID " ~ ` ~ gameNameOrId ~ ` ~ "!");
+            return -1;
+        }
+        auto game = config.games[indexOfGame];`;
+}
+
 int main(string[] args)
 {
     immutable configFileFolder = "~/.config/download-steam-games/".expandTilde;
@@ -122,35 +150,10 @@ int main(string[] args)
     return options.command.match!((.DownloadGamesAction) {
         foreach (game; config.games)
         {
-            string[] platforms;
-            if (game.windows)
-                platforms ~= "windows";
-            if (game.macos)
-                platforms ~= "macos";
-            if (game.linux)
-                platforms ~= "linux";
-
-            // an empty string indicates the non-beta download
-            string[] betas = game.betas ~ [""];
-
-            foreach (platform; platforms)
-            {
-                foreach (beta; betas)
-                {
-                    int ret = downloadGame(game.name, game.id, platform, beta, config);
-                    if (ret != 0)
-                        return ret;
-                }
-            }
-            foreach (soundtrack; game.soundtracks)
-            {
-                int ret = downloadGame(game.name ~ "-soundtrack-" ~ soundtrack.name,
-                    soundtrack.id, null, null, config);
-                if (ret != 0)
-                    return ret;
-            }
+            auto ret = downloadGame(game, config);
+            if (ret != 0)
+                return ret;
         }
-
         return 0;
     }, (.AddGameAction) {
         GameInfo newGame;
@@ -181,106 +184,63 @@ int main(string[] args)
     }, (.ListGamesAction listGames) {
         foreach (game; config.games)
             printGameInfo(game, listGames.detailed);
-
         return 0;
     }, (.RemoveGameAction removeAction) {
-        if (removeAction.game == "")
+        mixin(GetGameFromArgument!"removeAction.game");
+        if (readTruthyOrFalsy("Are you sure you want to delete " ~ game.name ~ "?",
+            false.nullable))
         {
-            writeln("No game specified");
-            return 0;
+            config.games = config.games.remove(indexOfGame);
+            writeln("Removed " ~ game.name);
+            configFile.open(configFilePath, "w");
+            configFile.write(config.serializeToJsonPretty());
+            configFile.close();
         }
-
-        for (int i = 0; i < config.games.length; ++i)
-        {
-            auto game = config.games[i];
-            if (game.name == removeAction.game || game.id == removeAction.game)
-            {
-                if (readTruthyOrFalsy("Are you sure you want to delete " ~ game.name ~ "?",
-                    false.nullable))
-                {
-                    config.games = config.games.remove(i);
-                    writeln("Removed " ~ game.name);
-                    configFile.open(configFilePath, "w");
-                    configFile.write(config.serializeToJsonPretty());
-                    configFile.close();
-                }
-                else
-                    writeln("Aborting.");
-                return 0;
-            }
-        }
-        writeln("Could not find a game with the name or ID " ~ removeAction.game ~ "!");
-        return -1;
+        else
+            writeln("Aborting.");
+        return 0;
     }, (.EditGameAction editAction) {
-        if (editAction.game == "")
+        mixin(GetGameFromArgument!"editAction.game");
+        game.id = readString("What is the game's ID (check https://steamdb.info if you are unsure)?",
+            game.id.nullable);
+        game.name = readString("What name do you want to use for the game?",
+            game.name.nullable);
+        game.windows = readTruthyOrFalsy("Does the game support Windows?",
+            game.windows.nullable);
+        game.macos = readTruthyOrFalsy("Does the game support macOS?", game.macos.nullable);
+        game.linux = readTruthyOrFalsy("Does the game support Linux?", game.linux.nullable);
+
+        if (game.betas.length > 0)
         {
-            writeln("No game specified");
-            return 0;
+            writeln("Betas: " ~ game.betas.to!string);
+            // TODO: allow removing or editing betas
+        }
+        while (readTruthyOrFalsy("Do you want to add a beta version?", false.nullable))
+            game.betas ~= readString("Enter the beta name:");
+
+        if (game.soundtracks.length > 0)
+        {
+            writeln("Soundtracks: " ~ game.soundtracks.to!string);
+            // TODO: allow removing or editing soundtracks
+        }
+        while (readTruthyOrFalsy("Do you want to add a soundtrack?", false.nullable))
+        {
+            SoundtrackInfo newSoundtrack;
+            newSoundtrack.id = readString(
+                "What is the soundtrack's ID (check https://steamdb.info if you are unsure)?");
+            newSoundtrack.name = readString(
+                "What name do you want to use for the soundtrack?");
+            game.soundtracks ~= newSoundtrack;
         }
 
-        for (int i = 0; i < config.games.length; ++i)
-        {
-            auto game = config.games[i];
-            if (game.name == editAction.game || game.id == editAction.game)
-            {
-                game.id = readString("What is the game's ID (check https://steamdb.info if you are unsure)?",
-                    game.id.nullable);
-                game.name = readString("What name do you want to use for the game?",
-                    game.name.nullable);
-                game.windows = readTruthyOrFalsy("Does the game support Windows?",
-                    game.windows.nullable);
-                game.macos = readTruthyOrFalsy("Does the game support macOS?", game.macos.nullable);
-                game.linux = readTruthyOrFalsy("Does the game support Linux?", game.linux.nullable);
-
-                if (game.betas.length > 0)
-                {
-                    writeln("Betas: " ~ game.betas.to!string);
-                    // TODO: allow removing or editing betas
-                }
-                while (readTruthyOrFalsy("Do you want to add a beta version?", false.nullable))
-                    game.betas ~= readString("Enter the beta name:");
-
-                if (game.soundtracks.length > 0)
-                {
-                    writeln("Soundtracks: " ~ game.soundtracks.to!string);
-                    // TODO: allow removing or editing soundtracks
-                }
-                while (readTruthyOrFalsy("Do you want to add a soundtrack?", false.nullable))
-                {
-                    SoundtrackInfo newSoundtrack;
-                    newSoundtrack.id = readString(
-                        "What is the soundtrack's ID (check https://steamdb.info if you are unsure)?");
-                    newSoundtrack.name = readString(
-                        "What name do you want to use for the soundtrack?");
-                    game.soundtracks ~= newSoundtrack;
-                }
-
-                config.games[i] = game;
-                configFile.open(configFilePath, "w");
-                configFile.write(config.serializeToJsonPretty());
-                configFile.close();
-                return 0;
-            }
-        }
-        writeln("Could not find a game with the name or ID " ~ editAction.game ~ "!");
-        return -1;
+        config.games[indexOfGame] = game;
+        configFile.open(configFilePath, "w");
+        configFile.write(config.serializeToJsonPretty());
+        configFile.close();
+        return 0;
     }, (.GameInfoAction infoAction) {
-        if (infoAction.game == "")
-        {
-            writeln("No game specified");
-            return 0;
-        }
-
-        for (int i = 0; i < config.games.length; ++i)
-        {
-            auto game = config.games[i];
-            if (game.name == infoAction.game || game.id == infoAction.game)
-            {
-                printGameInfo(game, true);
-                return 0;
-            }
-        }
-        writeln("Could not find a game with the name or ID " ~ infoAction.game ~ "!");
-        return -1;
+        mixin(GetGameFromArgument!"infoAction.game");
+        printGameInfo(game, true);
+        return 0;
     });
 }

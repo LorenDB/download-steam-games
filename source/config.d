@@ -4,6 +4,8 @@
 
 module config;
 
+import std.typecons;
+
 import asdf;
 
 struct SoundtrackInfo
@@ -30,4 +32,13 @@ struct AppConfig
     string archivePath;
 
     GameInfo[] games;
+
+    Nullable!GameInfo getGameByNameOrId(string nameOrId)
+    {
+        foreach (game; games)
+            if (game.name == nameOrId || game.id == nameOrId)
+                return game.nullable;
+
+        return Nullable!GameInfo.init;
+    }
 }
