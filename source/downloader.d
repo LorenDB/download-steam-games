@@ -95,8 +95,8 @@ int downloadGameImpl(string name, string id, string platform, string beta, AppCo
 
     auto tarProcess = execute([
         "tar", "--use-compress-program=pigz", "-cf",
-        config.archivePath ~ "/" ~ gameString ~ ".tar.gz", gamePath
-    ]);
+        config.archivePath ~ "/" ~ gameString ~ ".tar.gz", gameString
+    ], null, std.process.Config.none, size_t.max, config.archivePath ~ "/.downloads");
     if (tarProcess.status != 0)
     {
         writeln("Error with tar");
